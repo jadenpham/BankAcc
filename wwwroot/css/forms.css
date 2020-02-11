@@ -1,0 +1,22 @@
+span {
+    color: red;
+    display: block;
+}
+
+label{
+    display: block;
+}
+
+input{
+    display: block;
+}
+
+
+nav{
+    display: inline-block;
+    vertical-align: top;
+}
+
+.Login{
+    margin-left: 300px;
+}

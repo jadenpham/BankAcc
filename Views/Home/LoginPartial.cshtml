@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="~/css/forms.css">
+</head>
+<body>
+    @model BankAcc.Models.Login
+    <nav>
+        <div class = "Login">
+            <h4>Login for existing customers</h4>
+            <form asp-action="Login" method = "post">
+                <label asp-for="LogInEmail"></label>
+                <span asp-validation-for="LogInEmail"></span>
+                <input asp-for="LogInEmail">
+
+                <label asp-for="LogInPw"></label>
+                <span asp-validation-for="LogInPw"></span>
+                <input asp-for="LogInPw">
+
+                <input type="submit" value="Log In">
+            </form>
+        </div>
+    </nav>
+    
+</body>
+</html>
