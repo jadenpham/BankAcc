@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using BankAcc.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankAcc.Controllers
 {
@@ -47,10 +48,48 @@ namespace BankAcc.Controllers
             }
         }
 
-        [HttpGet("account/{id}")]
-        public IActionResult Account()
+        [HttpPost("Login")]
+        public IActionResult Login(Login userLogin)
         {
-            return View();
+            if(ModelState.IsValid)
+            {
+                var userInDb = dbContext.BankUsers.FirstOrDefault(u => u.Email == userLogin.LogInEmail);
+                if(userInDb == null)
+                {
+                    //unhash pw n match
+                    ModelState.AddModelError("LogInEmail", "Email or password doesn't match");
+                    return RedirectToAction("Index");
+                }
+                var hasher = new PasswordHasher<Login>();
+                var result = hasher.VerifyHashedPassword(userLogin, userInDb.Pw, userLogin.LogInPw);
+                if(result == 0)
+                {
+                    ModelState.AddModelError("LogInPw", "Email or password doesn't match");
+                    return RedirectToAction("Index");
+                }
+                HttpContext.Session.SetInt32("userId", userInDb.UserId);
+                ViewBag.userInfo = userInDb;
+                return View("Account", new {id = userInDb.UserId});
+            }
+            else
+            {
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpGet("account/{id}")]
+        public IActionResult Account(int id)
+        {
+            var sessionId = HttpContext.Session.GetInt32("userid");
+            if(sessionId == null)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ViewBag.userInfo = dbContext.BankUsers.Include(u => u.UserId == id);
+                return View();
+            }
         }
 
         public IActionResult Privacy()
