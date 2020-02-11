@@ -39,7 +39,7 @@ namespace BankAcc.Controllers
                 dbContext.Add(user);
                 dbContext.SaveChanges();
                 HttpContext.Session.SetInt32("userid", user.UserId);
-                return RedirectToAction("Account");
+                return RedirectToAction("Account", new {id = user.UserId});
             }
             else
             {
@@ -47,7 +47,7 @@ namespace BankAcc.Controllers
             }
         }
 
-        [HttpGet("account")]
+        [HttpGet("account/{id}")]
         public IActionResult Account()
         {
             return View();
