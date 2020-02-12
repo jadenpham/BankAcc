@@ -6,9 +6,23 @@
     <title>Document</title>
 </head>
 <body>
+    @model BankAcc.Models.Transactions
     <div>
         <h1>Login successful</h1>
+        <a href="/logout">Log Out</a>
         <h3>Welcome @ViewBag.userInfo.FName</h3>
+        <h4>Balance: @ViewBag.userInfo.Balance</h4>
     </div>
+    <form asp-action="Transactions" method="post">
+        <label for="">Deposit(+)/Withdraw(-)</label>
+        <span asp-validation-for="Amount"></span>
+        @if(TempData["Error"] != null)
+        {
+            <span>@TempData["Error"]</span>
+        }
+        <input asp-for="Amount">
+        <input type="submit" value="Submit Transaction">
+    </form>
+
 </body>
 </html>

@@ -58,22 +58,22 @@ namespace BankAcc.Controllers
                 {
                     //unhash pw n match
                     ModelState.AddModelError("LogInEmail", "Email or password doesn't match");
-                    return RedirectToAction("Index");
+                    return View("Index");
                 }
                 var hasher = new PasswordHasher<Login>();
                 var result = hasher.VerifyHashedPassword(userLogin, userInDb.Pw, userLogin.LogInPw);
                 if(result == 0)
                 {
                     ModelState.AddModelError("LogInPw", "Email or password doesn't match");
-                    return RedirectToAction("Index");
+                    return View("Index");
                 }
-                HttpContext.Session.SetInt32("userId", userInDb.UserId);
+                HttpContext.Session.SetInt32("userid", userInDb.UserId);
                 ViewBag.userInfo = userInDb;
-                return View("Account", new {id = userInDb.UserId});
+                return RedirectToAction("Account", new {id = userInDb.UserId});
             }
             else
             {
-                return RedirectToAction("Index");
+                return View("Index");
             }
         }
 
@@ -87,11 +87,49 @@ namespace BankAcc.Controllers
             }
             else
             {
-                ViewBag.userInfo = dbContext.BankUsers.Include(u => u.UserId == id);
+                var userInfo = dbContext.BankUsers.Include(u => u.Transactions).FirstOrDefault(u => u.UserId == id);
+                ViewBag.userInfo = userInfo;
+                foreach(var amount in userInfo.Transactions)
+                {
+                    System.Console.WriteLine(amount);
+                }
                 return View();
             }
         }
-
+        [HttpPost("transactions")]
+        public IActionResult Transactions(Transactions trans)
+        {
+            if(ModelState.IsValid)
+            {
+                //for deposits, amount > 0
+                // System.Console.WriteLine(trans.UserId);
+                var userInfo = dbContext.BankUsers.Include(u => u.Transactions).FirstOrDefault(u => u.UserId == HttpContext.Session.GetInt32("userid"));
+                Transactions newTrans = new Transactions();
+                if(trans.Amount < userInfo.Balance)
+                {
+                    TempData["Error"] = "Insufficient funds";
+                }
+                trans.UserId = userInfo.UserId;
+                trans.CreatedAt = DateTime.Now;
+                dbContext.Add(trans);
+                dbContext.SaveChanges();
+                userInfo.Transactions.Add(dbContext.BankTransactions.First());
+                return RedirectToAction("Account", new {id = HttpContext.Session.GetInt32("userid")});
+            }
+            else
+            {
+                // ModelState.AddModelError("Amount", "Please insert amount");
+                // ViewBag.userInfo = dbContext.BankUsers.FirstOrDefault(u => u.UserId == HttpContext.Session.GetInt32("userid"));
+                TempData["Error"] = "Please submit an amount";
+                return RedirectToAction("Account", new {id = HttpContext.Session.GetInt32("userid")});
+            }
+        }
+        [HttpGet("logout")]
+        public IActionResult LogOut()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index");
+        }
         public IActionResult Privacy()
         {
             return View();
