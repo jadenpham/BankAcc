@@ -11,7 +11,7 @@
         <h1>Login successful</h1>
         <a href="/logout">Log Out</a>
         <h3>Welcome @ViewBag.userInfo.FName</h3>
-        <h4>Balance: @ViewBag.userInfo.Balance</h4>
+        <h4>Balance: $@Math.Round(ViewBag.userInfo.Balance,2)</h4>
     </div>
     <form asp-action="Transactions" method="post">
         <label for="">Deposit(+)/Withdraw(-)</label>
@@ -23,6 +23,25 @@
         <input asp-for="Amount">
         <input type="submit" value="Submit Transaction">
     </form>
-
+    <table>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        @foreach(var info in ViewBag.transactions)
+        {
+            <tr>
+                @if(info.Amount < 0)
+                {
+                    <td>Withdraw</td>
+                }
+                else
+                {
+                    <td>Deposit</td>
+                }
+                <td>$@Math.Round(info.Amount,2)</td>
+                <td>@info.CreatedAt</td>
+            </tr>
+        }
+    </table>
 </body>
 </html>

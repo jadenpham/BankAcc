@@ -87,12 +87,13 @@ namespace BankAcc.Controllers
             }
             else
             {
-                var userInfo = dbContext.BankUsers.Include(u => u.Transactions).FirstOrDefault(u => u.UserId == id);
+                var userInfo = dbContext.BankUsers
+                                .Include(u => u.Transactions)
+                                .FirstOrDefault(u => u.UserId == id);
                 ViewBag.userInfo = userInfo;
-                foreach(var amount in userInfo.Transactions)
-                {
-                    System.Console.WriteLine(amount);
-                }
+                // var transactions = dbContext.BankTransactions.Include(u => u.Creator).FirstOrDefault(u => u.UserId == userInfo.UserId).OrderBy(u => u.CreatedAt);
+                var transactions = userInfo.Transactions.OrderByDescending(t => t.CreatedAt);
+                ViewBag.transactions = transactions;
                 return View();
             }
         }
@@ -101,25 +102,36 @@ namespace BankAcc.Controllers
         {
             if(ModelState.IsValid)
             {
-                //for deposits, amount > 0
-                // System.Console.WriteLine(trans.UserId);
-                var userInfo = dbContext.BankUsers.Include(u => u.Transactions).FirstOrDefault(u => u.UserId == HttpContext.Session.GetInt32("userid"));
-                Transactions newTrans = new Transactions();
-                if(trans.Amount < userInfo.Balance)
+                //for deposits, all amount > 0 is valid
+                //add to user's balance and transactions
+                //query for user first
+                //if amount <0 then its withdraw, checking if withdraw amount is greater than balanace amount
+                var userAcc = dbContext.BankUsers.Include(u => u.       
+                                Transactions).FirstOrDefault(u => u.UserId == HttpContext.Session.GetInt32("userid"));
+                if(trans.Amount < 0 && Math.Abs(trans.Amount) > userAcc.Balance)
                 {
                     TempData["Error"] = "Insufficient funds";
+                    return RedirectToAction("Account", new{id = userAcc.UserId});
                 }
-                trans.UserId = userInfo.UserId;
-                trans.CreatedAt = DateTime.Now;
-                dbContext.Add(trans);
-                dbContext.SaveChanges();
-                userInfo.Transactions.Add(dbContext.BankTransactions.First());
-                return RedirectToAction("Account", new {id = HttpContext.Session.GetInt32("userid")});
+                if(trans.Amount < 0 && Math.Abs(trans.Amount) < userAcc.Balance)
+                {
+                    trans.CreatedAt = DateTime.Now;
+                    userAcc.Transactions.Add(trans);
+                    userAcc.Balance += trans.Amount;
+                    dbContext.SaveChanges();
+                    return RedirectToAction("Account", new {id = userAcc.UserId});
+                }
+                else
+                {
+                    trans.CreatedAt = DateTime.Now;
+                    userAcc.Transactions.Add(trans);
+                    userAcc.Balance += trans.Amount;
+                    dbContext.SaveChanges();
+                    return RedirectToAction("Account", new {id = userAcc.UserId});
+                }
             }
             else
             {
-                // ModelState.AddModelError("Amount", "Please insert amount");
-                // ViewBag.userInfo = dbContext.BankUsers.FirstOrDefault(u => u.UserId == HttpContext.Session.GetInt32("userid"));
                 TempData["Error"] = "Please submit an amount";
                 return RedirectToAction("Account", new {id = HttpContext.Session.GetInt32("userid")});
             }

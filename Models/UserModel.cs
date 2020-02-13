@@ -34,13 +34,14 @@ namespace BankAcc.Models
         [Display(Name = "Confirm Password")]
         public string CPw {get; set;}
 
+        public decimal Balance {get; set;} = 0;
+        
         public List<Transactions> Transactions {get; set;}
 
         public DateTime CreatedAt {get; set;} = DateTime.Now;
 
         public DateTime UpdatedAt {get; set;} = DateTime.Now;
 
-        public decimal Balance {get; set;} = 0;
     }   
 
     public class Login

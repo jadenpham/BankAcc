@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankAcc.Migrations
 {
     [DbContext(typeof(MyContext))]
-    [Migration("20200212044008_First")]
-    partial class First
+    [Migration("20200213034836_FirstMigration")]
+    partial class FirstMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
